@@ -1,53 +1,188 @@
-# Thilak Sir Academy - Educational Platform
+# 🎓 Thilak Sir Academy - Educational Platform
 
-A modern educational platform built with React, TypeScript, and Vite. Features secure authentication, course management, video streaming, and PDF document handling.
+A modern, secure educational platform built with React, TypeScript, and Vite. Features comprehensive course management, video streaming, admin controls, and mobile-first design.
 
-Currently, two official plugins are available:
+## ✨ Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 🔐 **Security & Authentication**
+- Supabase authentication with OTP email verification
+- Row Level Security (RLS) policies for data protection
+- Admin role-based access control
+- Secure environment variable handling
+- Input validation and sanitization
 
-## React Compiler
+### 📚 **Course Management**
+- Interactive course catalog with enrollment system
+- Video streaming with preview/full access controls
+- Freemium model (preview videos vs full course access)
+- Mobile-optimized course detail pages
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 👨‍💼 **Admin Panel**
+- Comprehensive enrollment management system
+- Two-tier admin interface (overview + individual course management)
+- Bulk operations for enrollment status updates
+- Real-time notifications for pending enrollments
+- Individual and bulk enrollment status management
 
-## Expanding the ESLint configuration
+### 📱 **User Experience**
+- Mobile-first responsive design
+- Progressive web app capabilities
+- Real-time updates with React Query
+- Toast notifications for user feedback
+- Intuitive navigation with breadcrumbs
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🛠 **Technology Stack**
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Frontend
+- **React 18** - Modern React with hooks and context
+- **TypeScript** - Type-safe development
+- **Vite** - Fast build tool and dev server
+- **Tailwind CSS** - Utility-first styling
+- **React Router v6** - Client-side routing
+- **React Query (TanStack)** - Server state management
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Backend & Database
+- **Supabase** - Backend-as-a-Service
+- **PostgreSQL** - Robust relational database
+- **Row Level Security** - Database-level security
+- **Real-time subscriptions** - Live data updates
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Development Tools
+
+## 🚀 **Quick Start**
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Supabase account and project
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone <your-repo-url>
+   cd thilak-academy-web-app
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Setup:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your Supabase credentials
+   ```
+
+4. **Database Setup:**
+   ```bash
+   # Run in your Supabase SQL editor
+   \i CRITICAL_SECURITY_POLICIES.sql
+   ```
+
+5. **Set First Admin User:**
+   ```sql
+   UPDATE profiles SET is_admin = true WHERE email = 'your-email@domain.com';
+   ```
+
+6. **Start Development Server:**
+   ```bash
+   npm run dev
+   ```
+
+### Build for Production
+```bash
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 📋 **Project Structure**
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
+```
+src/
+├── components/          # Reusable UI components
+│   ├── layout/         # Layout components (Header, Layout)
+│   ├── ui/             # Basic UI components (Button, Card, etc.)
+│   ├── AdminProtectedRoute.tsx
+│   ├── ProtectedRoute.tsx
+│   └── ...
+├── hooks/              # Custom React hooks
+│   ├── useAuth.tsx     # Authentication logic
+│   ├── useAdmin.ts     # Admin functionality
+│   └── useCourses.ts   # Course and enrollment management
+├── lib/                # Utilities and configuration
+│   ├── supabase.ts     # Supabase client setup
+│   ├── validation.ts   # Security validation utilities
+│   └── utils.ts        # General utilities
+├── pages/              # Page components
+│   ├── LoginPage.tsx
+│   ├── DashboardPage.tsx
+│   ├── CourseDetailPage.tsx
+│   ├── VideoPage.tsx
+│   ├── AdminEnrollmentsOverviewPage.tsx
+│   └── AdminCourseEnrollmentsPage.tsx
+├── types/              # TypeScript type definitions
+└── assets/             # Static assets
+```
+
+## 🔐 **Security**
+
+This application implements enterprise-grade security:
+- **Authentication**: Supabase Auth with OTP verification
+- **Authorization**: Role-based access control (Admin/User)
+- **Database Security**: Row Level Security (RLS) policies
+- **Input Validation**: Client and server-side validation
+- **Route Protection**: Protected routes for authenticated users
+- **Admin Protection**: Additional protection for admin routes
+
+See `PRODUCTION_SECURITY_CHECKLIST.md` for complete security guidelines.
+
+## 🚀 **Deployment**
+
+Follow the comprehensive `PRODUCTION_DEPLOYMENT_GUIDE.md` for:
+- Production environment setup
+- Security configuration
+- Database policy implementation
+- Performance optimization
+- Monitoring and maintenance
+
+## 📖 **Development**
+
+### Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+### Git Workflow
+```bash
+# Feature development
+git checkout -b feature/your-feature-name
+git add .
+git commit -m "feat: add your feature description"
+git push origin feature/your-feature-name
+
+# Create pull request for review
+```
+
+## 🤝 **Contributing**
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Run security checks
+6. Submit a pull request
+
+## 📄 **License**
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🆘 **Support**
+
+- **Documentation**: Check the deployment and security guides
+- **Issues**: Create a GitHub issue for bugs or feature requests
+- **Security**: Report security issues privately to maintainers
 import reactDom from 'eslint-plugin-react-dom'
 
 export default defineConfig([
