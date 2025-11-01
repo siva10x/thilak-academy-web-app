@@ -382,17 +382,6 @@ export function VideoPage() {
                         </div>
                     )}
                 </div>
-
-                {/* Floating Back Button - Mobile Only */}
-                <div className="fixed bottom-4 right-4 md:hidden">
-                    <button
-                        onClick={handleBack}
-                        className="flex items-center justify-center w-12 h-12 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg transition-colors"
-                        aria-label="Go back to course"
-                    >
-                        <ArrowLeftIcon className="h-5 w-5" />
-                    </button>
-                </div>
             </div>
         </Layout>
     )
