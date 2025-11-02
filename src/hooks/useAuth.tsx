@@ -21,43 +21,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         // Handle OAuth callback if URL has hash fragments
         const handleAuthCallback = async () => {
-            console.log('Auth callback check:', {
-                hasHash: !!window.location.hash,
-                hash: window.location.hash,
-                pathname: window.location.pathname,
-                href: window.location.href
-            })
-
             // Check if we're handling an OAuth callback
             if (window.location.hash && window.location.hash.includes('access_token')) {
-                console.log('OAuth callback detected, processing tokens...')
                 setLoading(true)
                 try {
                     // Supabase will automatically parse the tokens from URL
                     const { data, error } = await supabase.auth.getSession()
-                    console.log('Session check result:', { hasSession: !!data.session, error })
 
                     if (error) {
                         console.error('Auth callback error:', error)
                     } else if (data.session) {
-                        console.log('Setting session for user:', data.session.user.email)
                         setSession(data.session)
                         setUser(data.session.user)
 
                         // Clean up the URL by removing the hash
                         const cleanUrl = window.location.pathname + window.location.search
-                        console.log('Cleaning URL from', window.location.href, 'to', cleanUrl)
                         window.history.replaceState({}, document.title, cleanUrl)
 
                         // Redirect to dashboard if we're not already there
                         if (window.location.pathname !== '/dashboard') {
-                            console.log('Redirecting to dashboard from', window.location.pathname)
                             window.location.replace('/dashboard')
-                        } else {
-                            console.log('Already on dashboard, no redirect needed')
                         }
-                    } else {
-                        console.log('No session found after OAuth callback')
                     }
                 } catch (err) {
                     console.error('Failed to handle auth callback:', err)
@@ -86,7 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
-                console.log('Auth event:', event)
                 setSession(session)
                 setUser(session?.user ?? null)
                 setLoading(false)
