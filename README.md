@@ -5,7 +5,7 @@ A modern, secure educational platform built with React, TypeScript, and Vite. Fe
 ## ✨ Features
 
 ### 🔐 **Security & Authentication**
-- Supabase authentication with OTP email verification
+- Google OAuth authentication via Supabase
 - Row Level Security (RLS) policies for data protection
 - Admin role-based access control
 - Secure environment variable handling
@@ -75,15 +75,21 @@ A modern, secure educational platform built with React, TypeScript, and Vite. Fe
    # Edit .env with your Supabase credentials
    ```
 
-4. **Database Setup:**
+4. **Google OAuth Setup:**
+   ```bash
+   # Follow detailed instructions in GOOGLE_OAUTH_SETUP.md
+   # Configure Google Cloud Console and Supabase authentication
+   ```
+
+5. **Database Setup:**
    ```bash
    # Run in your Supabase SQL editor
    \i CRITICAL_SECURITY_POLICIES.sql
    ```
 
-5. **Set First Admin User:**
+6. **Set First Admin User:**
    ```sql
-   UPDATE profiles SET is_admin = true WHERE email = 'your-email@domain.com';
+   UPDATE profiles SET is_admin = true WHERE email = 'your-gmail@gmail.com';
    ```
 
 6. **Start Development Server:**
