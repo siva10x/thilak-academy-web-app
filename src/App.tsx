@@ -5,6 +5,7 @@ import { AuthProvider } from './hooks/useAuth'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { AdminProtectedRoute } from './components/AdminProtectedRoute'
 import { LoginPage } from './pages/LoginPage'
+import { AuthCallbackPage } from './pages/AuthCallbackPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { CourseDetailPage } from './pages/CourseDetailPage'
 import { VideoPage } from './pages/VideoPage'
@@ -29,6 +30,7 @@ function App() {
           <div className="App">
             <Routes>
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
               <Route
                 path="/dashboard"
                 element={
