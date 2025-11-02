@@ -39,11 +39,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [])
 
     const signInWithGoogle = async () => {
+        // Get the correct redirect URL based on environment
+        const getRedirectUrl = () => {
+            // For production, use the actual deployed domain
+            if (typeof window !== 'undefined') {
+                const currentUrl = window.location.origin;
+
+                // Check if we're on Vercel or your production domain
+                if (currentUrl.includes('.vercel.app') || currentUrl.includes('your-domain.com')) {
+                    return `${currentUrl}/dashboard`;
+                }
+
+                // For local development
+                if (currentUrl.includes('localhost')) {
+                    return `${currentUrl}/dashboard`;
+                }
+            }
+
+            // Fallback - let Supabase handle default redirect
+            return undefined;
+        };
+
+        const redirectTo = getRedirectUrl();
+
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
-            options: {
-                redirectTo: `${window.location.origin}/dashboard`,
-            },
+            options: redirectTo ? { redirectTo } : {},
         })
         return { error }
     }
