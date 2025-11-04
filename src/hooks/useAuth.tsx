@@ -17,8 +17,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
     const [session, setSession] = useState<Session | null>(null)
     const [loading, setLoading] = useState(true)
+    const [isTabVisible, setIsTabVisible] = useState(true)
 
     useEffect(() => {
+        // Track tab visibility to prevent redirects on tab switches
+        const handleVisibilityChange = () => {
+            setIsTabVisible(!document.hidden)
+        }
+        
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+        
         // Handle OAuth callback if URL has hash fragments
         const handleAuthCallback = async () => {
             // Check if we're handling an OAuth callback
@@ -38,7 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         const cleanUrl = window.location.pathname + window.location.search
                         window.history.replaceState({}, document.title, cleanUrl)
 
-                        // Redirect to dashboard if we're not already there
+                        // Set flag for fresh sign-in and redirect to dashboard if we're not already there
+                        sessionStorage.setItem('freshSignIn', 'true')
                         if (window.location.pathname !== '/dashboard') {
                             window.location.replace('/dashboard')
                         }
@@ -81,15 +90,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         window.history.replaceState({}, document.title, window.location.pathname)
                     }
 
-                    // Redirect to dashboard if not already there
-                    if (window.location.pathname !== '/dashboard') {
+                    // Only redirect to dashboard on fresh sign-in, not on tab switches
+                    // Check if this is a fresh sign-in by looking for OAuth fragments or login page
+                    const isFromLogin = window.location.pathname === '/login' || 
+                                      window.location.pathname === '/' ||
+                                      window.location.hash.includes('access_token') ||
+                                      sessionStorage.getItem('freshSignIn') === 'true'
+                    
+                    // Don't redirect if tab is becoming visible (tab switch)
+                    const isTabSwitch = !isTabVisible && document.visibilityState === 'visible'
+                    
+                    // Track last visited path to prevent redirects from current page
+                    const lastPath = localStorage.getItem('lastVisitedPath')
+                    const currentPath = window.location.pathname
+                    
+                    // Only redirect if this is actually a fresh sign-in from login/home page
+                    if (isFromLogin && !isTabSwitch && currentPath !== '/dashboard' && 
+                        (currentPath === '/login' || currentPath === '/' || lastPath === '/login' || lastPath === '/')) {
+                        sessionStorage.removeItem('freshSignIn') // Clean up flag
+                        localStorage.setItem('lastVisitedPath', '/dashboard')
                         window.location.replace('/dashboard')
+                    } else {
+                        // Update last visited path for non-redirected navigation
+                        localStorage.setItem('lastVisitedPath', currentPath)
                     }
                 }
             }
         )
 
-        return () => subscription.unsubscribe()
+        return () => {
+            subscription.unsubscribe()
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
+        }
     }, [])
 
     const signInWithGoogle = async () => {
@@ -116,6 +148,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const redirectTo = getRedirectUrl();
 
+        // Set flag to indicate this is a fresh sign-in
+        sessionStorage.setItem('freshSignIn', 'true')
+        
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: redirectTo ? { redirectTo } : {},

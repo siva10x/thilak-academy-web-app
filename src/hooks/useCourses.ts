@@ -304,3 +304,85 @@ export function useBulkUpdateEnrollmentStatus() {
         },
     })
 }
+
+// Video Management Functions
+export function useCreateVideo() {
+    return useMutation({
+        mutationFn: async ({
+            title,
+            description,
+            thumbnailUrl,
+            vimeoId
+        }: {
+            title: string
+            description: string
+            thumbnailUrl: string
+            vimeoId: string
+        }) => {
+            const { data, error } = await supabase
+                .from(TABLES.VIDEOS)
+                .insert([
+                    {
+                        title,
+                        description,
+                        thumbnail_url: thumbnailUrl,
+                        vimeo_id: vimeoId,
+                        uploaded_at: new Date().toISOString()
+                    },
+                ])
+                .select()
+                .single()
+
+            if (error) throw error
+            return data as Video
+        },
+    })
+}
+
+export function useAddVideoToCourse() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: async ({
+            courseId,
+            videoId,
+            previewEnabled = false
+        }: {
+            courseId: string
+            videoId: string
+            previewEnabled?: boolean
+        }) => {
+            // First, get the highest display_order for this course
+            const { data: existingVideos, error: fetchError } = await supabase
+                .from(TABLES.COURSE_VIDEOS)
+                .select('display_order')
+                .eq('course_id', courseId)
+                .order('display_order', { ascending: false })
+                .limit(1)
+
+            if (fetchError) throw fetchError
+
+            const nextDisplayOrder = existingVideos.length > 0 ? existingVideos[0].display_order + 1 : 1
+
+            // Then insert the new course_video record
+            const { data, error } = await supabase
+                .from(TABLES.COURSE_VIDEOS)
+                .insert([
+                    {
+                        course_id: courseId,
+                        video_id: videoId,
+                        display_order: nextDisplayOrder,
+                        preview_enabled: previewEnabled
+                    },
+                ])
+                .select()
+                .single()
+
+            if (error) throw error
+            return data as CourseVideo
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['course-videos', variables.courseId] })
+        },
+    })
+}

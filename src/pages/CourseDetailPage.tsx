@@ -1,7 +1,8 @@
 
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { PlayIcon, ChevronRightIcon, ArrowLeftIcon, HomeIcon, LockClosedIcon, CogIcon } from '@heroicons/react/24/outline'
+import { PlayIcon, ChevronRightIcon, ArrowLeftIcon, HomeIcon, LockClosedIcon, CogIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { toast } from 'react-hot-toast'
+import { useState, useCallback, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useCourse, useCourseVideos, useIsEnrolled, useEnrollmentStatus, useEnrollInCourse, useUpdateEnrollmentStatus } from '../hooks/useCourses'
 import { useIsAdmin } from '../hooks/useAdmin'
@@ -9,6 +10,7 @@ import { Layout } from '../components/layout/Layout'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { LoadingPage } from '../components/ui/Loading'
+import { VideoUploadForm } from '../components/VideoUploadForm'
 import type { Video } from '../types'
 
 
@@ -16,6 +18,15 @@ export function CourseDetailPage() {
     const { courseId } = useParams<{ courseId: string }>()
     const { user } = useAuth()
     const navigate = useNavigate()
+
+    // Initialize modal state from sessionStorage to persist across tab switches
+    const [isVideoUploadOpen, setIsVideoUploadOpen] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const saved = sessionStorage.getItem(`videoUpload_${courseId}`)
+            return saved === 'true'
+        }
+        return false
+    })
 
     const { data: course, isLoading: courseLoading } = useCourse(courseId!)
     const { data: courseVideos = [], isLoading: videosLoading } = useCourseVideos(courseId!)
@@ -25,6 +36,36 @@ export function CourseDetailPage() {
 
     const enrollMutation = useEnrollInCourse()
     const updateEnrollmentMutation = useUpdateEnrollmentStatus()
+
+    // Prevent modal from closing on tab switch/visibility change
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            // Don't do anything when visibility changes to prevent modal from closing
+            // The modal should only close when explicitly closed by user
+        }
+
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
+        }
+    }, [])
+
+    // Persist modal state to sessionStorage
+    useEffect(() => {
+        if (typeof window !== 'undefined' && courseId) {
+            sessionStorage.setItem(`videoUpload_${courseId}`, isVideoUploadOpen.toString())
+        }
+    }, [isVideoUploadOpen, courseId])
+
+    // Memoize functions to prevent unnecessary re-renders
+    const handleOpenVideoUpload = useCallback(() => {
+        setIsVideoUploadOpen(true)
+    }, [])
+
+    const handleCloseVideoUpload = useCallback(() => {
+        setIsVideoUploadOpen(false)
+    }, [])
 
     const handleBack = () => {
         navigate(-1) // Go back to previous page
@@ -148,6 +189,15 @@ export function CourseDetailPage() {
                     {/* Admin Actions */}
                     {isAdmin && (
                         <div className="flex items-center space-x-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleOpenVideoUpload}
+                            >
+                                <PlusIcon className="h-4 w-4 mr-1" />
+                                <span className="hidden sm:inline">Upload Video</span>
+                                <span className="sm:hidden">Upload</span>
+                            </Button>
                             <Link to={`/admin/course/${courseId}/enrollments`}>
                                 <Button variant="outline" size="sm">
                                     <CogIcon className="h-4 w-4 mr-1" />
@@ -340,6 +390,16 @@ export function CourseDetailPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Video Upload Modal */}
+                {isAdmin && (
+                    <VideoUploadForm
+                        key={`video-upload-${courseId}`}
+                        courseId={courseId!}
+                        isOpen={isVideoUploadOpen}
+                        onClose={handleCloseVideoUpload}
+                    />
+                )}
             </div>
         </Layout>
     )
