@@ -339,6 +339,46 @@ export function useCreateVideo() {
     })
 }
 
+export function useUpdateVideo() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: async ({
+            videoId,
+            title,
+            description,
+            thumbnailUrl,
+            vimeoId
+        }: {
+            videoId: string
+            title: string
+            description: string
+            thumbnailUrl: string
+            vimeoId: string
+        }) => {
+            const { data, error } = await supabase
+                .from(TABLES.VIDEOS)
+                .update({
+                    title,
+                    description,
+                    thumbnail_url: thumbnailUrl,
+                    vimeo_id: vimeoId,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', videoId)
+                .select()
+                .single()
+
+            if (error) throw error
+            return data as Video
+        },
+        onSuccess: () => {
+            // Invalidate all video-related queries
+            queryClient.invalidateQueries({ queryKey: ['course-videos'] })
+        },
+    })
+}
+
 export function useAddVideoToCourse() {
     const queryClient = useQueryClient()
 

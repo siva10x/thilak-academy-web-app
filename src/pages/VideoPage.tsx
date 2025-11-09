@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon, HomeIcon, ChevronRightIcon, DocumentIcon, LinkIcon, LockClosedIcon } from '@heroicons/react/24/outline'
+import { ArrowLeftIcon, HomeIcon, ChevronRightIcon, DocumentIcon, LinkIcon, LockClosedIcon, PencilIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
 import { useCourse, useCourseVideos, useIsEnrolled, useEnrollInCourse, useEnrollmentStatus, useUpdateEnrollmentStatus } from '../hooks/useCourses'
+import { useIsAdmin } from '../hooks/useAdmin'
 import { Layout } from '../components/layout/Layout'
 import { LoadingPage } from '../components/ui/Loading'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
+import { VideoUploadForm } from '../components/VideoUploadForm'
 import type { Video, CourseVideo } from '../types'
 
 export function VideoPage() {
@@ -17,11 +19,13 @@ export function VideoPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [currentVideo, setCurrentVideo] = useState<Video | null>(null)
     const [courseVideo, setCourseVideo] = useState<CourseVideo | null>(null)
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
     const { data: course } = useCourse(courseId!)
     const { data: courseVideos = [] } = useCourseVideos(courseId!)
     const { data: isEnrolled = false } = useIsEnrolled(user?.id || '', courseId!)
     const { data: enrollmentStatus } = useEnrollmentStatus(user?.id || '', courseId!)
+    const { data: isAdmin = false } = useIsAdmin(user?.id)
     const enrollInCourseMutation = useEnrollInCourse()
     const updateEnrollmentMutation = useUpdateEnrollmentStatus()
 
@@ -297,9 +301,22 @@ export function VideoPage() {
 
                 {/* Video Information */}
                 <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-                    <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">
-                        {currentVideo.title}
-                    </h1>
+                    <div className="flex items-start justify-between mb-3 md:mb-4">
+                        <h1 className="text-xl md:text-2xl font-bold text-gray-900 flex-1">
+                            {currentVideo.title}
+                        </h1>
+                        {isAdmin && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsEditModalOpen(true)}
+                                className="ml-4"
+                            >
+                                <PencilIcon className="h-4 w-4 mr-1" />
+                                <span className="hidden sm:inline">Edit</span>
+                            </Button>
+                        )}
+                    </div>
 
                     {courseVideo.preview_enabled && (
                         <div className="mb-4">
@@ -382,6 +399,17 @@ export function VideoPage() {
                         </div>
                     )}
                 </div>
+
+                {/* Edit Video Modal */}
+                {isAdmin && (
+                    <VideoUploadForm
+                        courseId={courseId!}
+                        isOpen={isEditModalOpen}
+                        onClose={() => setIsEditModalOpen(false)}
+                        editVideo={currentVideo}
+                        isEditMode={true}
+                    />
+                )}
             </div>
         </Layout>
     )

@@ -3,15 +3,18 @@ import { XMarkIcon, CloudArrowUpIcon } from '@heroicons/react/24/outline'
 import { toast } from 'react-hot-toast'
 import { Button } from './ui/Button'
 import { Input } from './ui/Input'
-import { useCreateVideo, useAddVideoToCourse } from '../hooks/useCourses'
+import { useCreateVideo, useAddVideoToCourse, useUpdateVideo } from '../hooks/useCourses'
+import type { Video } from '../types'
 
 interface VideoUploadFormProps {
     courseId: string
     isOpen: boolean
     onClose: () => void
+    editVideo?: Video | null
+    isEditMode?: boolean
 }
 
-export function VideoUploadForm({ courseId, isOpen, onClose }: VideoUploadFormProps) {
+export function VideoUploadForm({ courseId, isOpen, onClose, editVideo = null, isEditMode = false }: VideoUploadFormProps) {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -21,7 +24,30 @@ export function VideoUploadForm({ courseId, isOpen, onClose }: VideoUploadFormPr
     })
 
     const createVideoMutation = useCreateVideo()
+    const updateVideoMutation = useUpdateVideo()
     const addVideoToCourseMutation = useAddVideoToCourse()
+
+    // Populate form with existing video data when in edit mode
+    useEffect(() => {
+        if (isEditMode && editVideo && isOpen) {
+            setFormData({
+                title: editVideo.title || '',
+                description: editVideo.description || '',
+                thumbnailUrl: editVideo.thumbnail_url || '',
+                vimeoId: editVideo.vimeo_id || '',
+                previewEnabled: false // This would need to come from course_videos table
+            })
+        } else if (!isEditMode && isOpen) {
+            // Reset form when opening in create mode
+            setFormData({
+                title: '',
+                description: '',
+                thumbnailUrl: '',
+                vimeoId: '',
+                previewEnabled: false
+            })
+        }
+    }, [isEditMode, editVideo, isOpen])
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target
@@ -40,22 +66,35 @@ export function VideoUploadForm({ courseId, isOpen, onClose }: VideoUploadFormPr
         }
 
         try {
-            // First create the video
-            const video = await createVideoMutation.mutateAsync({
-                title: formData.title.trim(),
-                description: formData.description.trim(),
-                thumbnailUrl: formData.thumbnailUrl.trim(),
-                vimeoId: formData.vimeoId.trim()
-            })
+            if (isEditMode && editVideo) {
+                // Update existing video
+                await updateVideoMutation.mutateAsync({
+                    videoId: editVideo.id,
+                    title: formData.title.trim(),
+                    description: formData.description.trim(),
+                    thumbnailUrl: formData.thumbnailUrl.trim(),
+                    vimeoId: formData.vimeoId.trim()
+                })
 
-            // Then add it to the course
-            await addVideoToCourseMutation.mutateAsync({
-                courseId,
-                videoId: video.id,
-                previewEnabled: formData.previewEnabled
-            })
+                toast.success('Video updated successfully!')
+            } else {
+                // Create new video
+                const video = await createVideoMutation.mutateAsync({
+                    title: formData.title.trim(),
+                    description: formData.description.trim(),
+                    thumbnailUrl: formData.thumbnailUrl.trim(),
+                    vimeoId: formData.vimeoId.trim()
+                })
 
-            toast.success('Video uploaded successfully!')
+                // Then add it to the course
+                await addVideoToCourseMutation.mutateAsync({
+                    courseId,
+                    videoId: video.id,
+                    previewEnabled: formData.previewEnabled
+                })
+
+                toast.success('Video uploaded successfully!')
+            }
 
             // Reset form and close modal
             setFormData({
@@ -67,12 +106,12 @@ export function VideoUploadForm({ courseId, isOpen, onClose }: VideoUploadFormPr
             })
             onClose()
         } catch (error) {
-            console.error('Error uploading video:', error)
-            toast.error('Failed to upload video. Please try again.')
+            console.error('Error saving video:', error)
+            toast.error(`Failed to ${isEditMode ? 'update' : 'upload'} video. Please try again.`)
         }
     }
 
-    const isLoading = createVideoMutation.isPending || addVideoToCourseMutation.isPending
+    const isLoading = createVideoMutation.isPending || addVideoToCourseMutation.isPending || updateVideoMutation.isPending
 
     // Prevent modal from closing on tab visibility changes
     useEffect(() => {
@@ -118,7 +157,9 @@ export function VideoUploadForm({ courseId, isOpen, onClose }: VideoUploadFormPr
             >
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                    <h2 className="text-xl font-semibold text-gray-900">Upload Video</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">
+                        {isEditMode ? 'Edit Video Details' : 'Upload Video'}
+                    </h2>
                     <button
                         onClick={onClose}
                         className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -234,12 +275,12 @@ export function VideoUploadForm({ courseId, isOpen, onClose }: VideoUploadFormPr
                             {isLoading ? (
                                 <>
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                    Uploading...
+                                    {isEditMode ? 'Updating...' : 'Uploading...'}
                                 </>
                             ) : (
                                 <>
                                     <CloudArrowUpIcon className="h-4 w-4 mr-2" />
-                                    Upload Video
+                                    {isEditMode ? 'Update Video' : 'Upload Video'}
                                 </>
                             )}
                         </Button>

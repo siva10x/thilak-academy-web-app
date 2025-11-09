@@ -378,7 +378,7 @@ export function AdminCourseEnrollmentsPage() {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <h4 className="font-medium text-gray-900 text-sm truncate">
-                                                        {enrollment.profile?.full_name || enrollment.profile?.username || 'Unknown User'}
+                                                        {enrollment.profile?.full_name || enrollment.profile?.username || enrollment.profile?.email || 'Unknown User'}
                                                     </h4>
                                                     <p className="text-xs text-gray-600 truncate">
                                                         {enrollment.profile?.email || 'No email'}
@@ -453,7 +453,7 @@ export function AdminCourseEnrollmentsPage() {
                                                     variant="outline"
                                                     onClick={() => handleDeleteEnrollment(
                                                         enrollment.id,
-                                                        enrollment.profile?.full_name || enrollment.profile?.username || 'Unknown User'
+                                                        enrollment.profile?.full_name || enrollment.profile?.username || enrollment.profile?.email || 'Unknown User'
                                                     )}
                                                     loading={selectedEnrollment === enrollment.id}
                                                     disabled={deleteEnrollmentMutation.isPending || updateEnrollmentMutation.isPending}
@@ -482,7 +482,7 @@ export function AdminCourseEnrollmentsPage() {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <h4 className="font-medium text-gray-900">
-                                                        {enrollment.profile?.full_name || enrollment.profile?.username || 'Unknown User'}
+                                                        {enrollment.profile?.full_name || enrollment.profile?.username || enrollment.profile?.email || 'Unknown User'}
                                                     </h4>
                                                     <p className="text-sm text-gray-600">
                                                         {enrollment.profile?.email || 'No email'}
@@ -547,7 +547,7 @@ export function AdminCourseEnrollmentsPage() {
                                                         variant="outline"
                                                         onClick={() => handleDeleteEnrollment(
                                                             enrollment.id,
-                                                            enrollment.profile?.full_name || enrollment.profile?.username || 'Unknown User'
+                                                            enrollment.profile?.full_name || enrollment.profile?.username || enrollment.profile?.email || 'Unknown User'
                                                         )}
                                                         loading={selectedEnrollment === enrollment.id}
                                                         disabled={deleteEnrollmentMutation.isPending || updateEnrollmentMutation.isPending}

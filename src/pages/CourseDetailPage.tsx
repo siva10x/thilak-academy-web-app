@@ -1,6 +1,6 @@
 
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { PlayIcon, ChevronRightIcon, ArrowLeftIcon, HomeIcon, LockClosedIcon, CogIcon, PlusIcon } from '@heroicons/react/24/outline'
+import { PlayIcon, ChevronRightIcon, ArrowLeftIcon, HomeIcon, LockClosedIcon, CogIcon, PlusIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { toast } from 'react-hot-toast'
 import { useState, useCallback, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
@@ -27,6 +27,10 @@ export function CourseDetailPage() {
         }
         return false
     })
+
+    // State for edit mode
+    const [editingVideo, setEditingVideo] = useState<Video | null>(null)
+    const [isEditMode, setIsEditMode] = useState(false)
 
     const { data: course, isLoading: courseLoading } = useCourse(courseId!)
     const { data: courseVideos = [], isLoading: videosLoading } = useCourseVideos(courseId!)
@@ -60,11 +64,22 @@ export function CourseDetailPage() {
 
     // Memoize functions to prevent unnecessary re-renders
     const handleOpenVideoUpload = useCallback(() => {
+        setIsEditMode(false)
+        setEditingVideo(null)
         setIsVideoUploadOpen(true)
     }, [])
 
     const handleCloseVideoUpload = useCallback(() => {
         setIsVideoUploadOpen(false)
+        setIsEditMode(false)
+        setEditingVideo(null)
+    }, [])
+
+    const handleEditVideo = useCallback((video: Video, e: React.MouseEvent) => {
+        e.stopPropagation() // Prevent video navigation
+        setEditingVideo(video)
+        setIsEditMode(true)
+        setIsVideoUploadOpen(true)
     }, [])
 
     const handleBack = () => {
@@ -348,9 +363,20 @@ export function CourseDetailPage() {
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-start justify-between">
                                                             <div className="flex-1 pr-2">
-                                                                <h4 className="font-semibold text-gray-900 text-base md:text-lg mb-2 leading-tight">
-                                                                    {index + 1}. {courseVideo.video.title}
-                                                                </h4>
+                                                                <div className="flex items-start justify-between gap-2">
+                                                                    <h4 className="font-semibold text-gray-900 text-base md:text-lg mb-2 leading-tight flex-1">
+                                                                        {index + 1}. {courseVideo.video.title}
+                                                                    </h4>
+                                                                    {isAdmin && (
+                                                                        <button
+                                                                            onClick={(e) => handleEditVideo(courseVideo.video, e)}
+                                                                            className="text-gray-400 hover:text-primary-600 transition-colors p-1 rounded hover:bg-gray-100"
+                                                                            aria-label="Edit video"
+                                                                        >
+                                                                            <PencilIcon className="h-4 w-4" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
 
                                                                 {courseVideo.video.description && (
                                                                     <p className="text-gray-600 text-sm mb-3 line-clamp-2 leading-relaxed">
@@ -394,10 +420,12 @@ export function CourseDetailPage() {
                 {/* Video Upload Modal */}
                 {isAdmin && (
                     <VideoUploadForm
-                        key={`video-upload-${courseId}`}
+                        key={`video-upload-${courseId}-${editingVideo?.id || 'new'}`}
                         courseId={courseId!}
                         isOpen={isVideoUploadOpen}
                         onClose={handleCloseVideoUpload}
+                        editVideo={editingVideo}
+                        isEditMode={isEditMode}
                     />
                 )}
             </div>

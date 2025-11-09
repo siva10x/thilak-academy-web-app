@@ -24,9 +24,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const handleVisibilityChange = () => {
             setIsTabVisible(!document.hidden)
         }
-        
+
         document.addEventListener('visibilitychange', handleVisibilityChange)
-        
+
         // Handle OAuth callback if URL has hash fragments
         const handleAuthCallback = async () => {
             // Check if we're handling an OAuth callback
@@ -92,20 +92,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                     // Only redirect to dashboard on fresh sign-in, not on tab switches
                     // Check if this is a fresh sign-in by looking for OAuth fragments or login page
-                    const isFromLogin = window.location.pathname === '/login' || 
-                                      window.location.pathname === '/' ||
-                                      window.location.hash.includes('access_token') ||
-                                      sessionStorage.getItem('freshSignIn') === 'true'
-                    
+                    const isFromLogin = window.location.pathname === '/login' ||
+                        window.location.pathname === '/' ||
+                        window.location.hash.includes('access_token') ||
+                        sessionStorage.getItem('freshSignIn') === 'true'
+
                     // Don't redirect if tab is becoming visible (tab switch)
                     const isTabSwitch = !isTabVisible && document.visibilityState === 'visible'
-                    
+
                     // Track last visited path to prevent redirects from current page
                     const lastPath = localStorage.getItem('lastVisitedPath')
                     const currentPath = window.location.pathname
-                    
+
                     // Only redirect if this is actually a fresh sign-in from login/home page
-                    if (isFromLogin && !isTabSwitch && currentPath !== '/dashboard' && 
+                    if (isFromLogin && !isTabSwitch && currentPath !== '/dashboard' &&
                         (currentPath === '/login' || currentPath === '/' || lastPath === '/login' || lastPath === '/')) {
                         sessionStorage.removeItem('freshSignIn') // Clean up flag
                         localStorage.setItem('lastVisitedPath', '/dashboard')
@@ -150,7 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Set flag to indicate this is a fresh sign-in
         sessionStorage.setItem('freshSignIn', 'true')
-        
+
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: redirectTo ? { redirectTo } : {},
